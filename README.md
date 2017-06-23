@@ -18,6 +18,6 @@
 * Clone this project
 * run 
 ``mvn clean install``
-* run ``mvn spring-boot:run``
+* run ``java -jar target/batonsys-0.0.1-SNAPSHOT.jar``
 * Go to http://localhost:8080
 * From there you can add client, disconnect client and see the output of the scheduler on your console.
