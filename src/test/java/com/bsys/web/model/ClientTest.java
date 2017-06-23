@@ -14,7 +14,7 @@ public class ClientTest {
 		
 		assertEquals("Name must be Test", "Test", c.getName());
 		assertEquals("Id must be 0", 0, c.getId());
-		assertEquals("Counter must be 1", 1, c.getAndIncCounter());
+		assertEquals("Counter must be 0", 0, c.getAndIncCounter());
 		assertEquals("Must not be connected since empty constructor", false, c.isConnected());
 	}
 

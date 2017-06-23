@@ -14,6 +14,8 @@ import com.bsys.web.model.Client;
  * Keeps a list of all clients in a synchronized list.
  * This allows new clients to be added and making sure that these new clients
  * are seen by the fair scheduler right away.
+ * Synchronized methods/block could be used instead of synchronized list. The over head will be on the developers then
+ * to handle concurrency.
  * processorIndex var keeps track of the current element being processed by fair scheduler
  * 
  */
@@ -29,6 +31,10 @@ public class ClientService {
 		this.addClient("Client C");
 	}
 
+	/**
+	 * A copy is returned so original list is not modified.
+	 * @return
+	 */
 	public List<Client> retrieveClients() {
 		return Collections.unmodifiableList(clients);
 	}
@@ -49,6 +55,12 @@ public class ClientService {
 		client.setConnected(!client.isConnected());
 	}
 
+	/**
+	 * As per java spec the code is synchronized using the list as lock so while iterating
+	 * the list cannot be changed.
+	 * @param id
+	 * @return
+	 */
 	public Client getClient(int id) {
 		synchronized (clients) {
 			for (Client c : clients) {
