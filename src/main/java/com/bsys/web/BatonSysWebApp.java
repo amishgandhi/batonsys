@@ -24,7 +24,6 @@ public class BatonSysWebApp {
 	@Bean
 	public ThreadPoolTaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-		pool.setWaitForTasksToCompleteOnShutdown(true);
 		return pool;
 	}
 

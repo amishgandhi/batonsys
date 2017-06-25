@@ -1,5 +1,7 @@
 package com.bsys.web.service;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,25 +19,27 @@ import com.bsys.web.model.Client;
  * connected client
  */
 @Component
-@Scope("prototype")
+@Scope("singleton")
 public class FairScheduler implements Runnable{
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	public static final int FAIR_SHARE_TIME_IN_MILLIS = 4000;
 	public static final int TIME_INTERVAL_IN_MILLIS = 1000;
+	private AtomicBoolean keepRunning;
 	
-	@Autowired ClientService service;
+	ClientService service;
 	
-	
-	public FairScheduler() {
-
+	@Autowired
+	public FairScheduler(ClientService service) {
+		this.service = service;
+		this.keepRunning = new AtomicBoolean(true);
 	}
 	@Override
 	public void run() {
 		logger.debug("Starting fair scheduler debug");
-		while(true){
+		while(keepRunning.get()){
 			int timeSlice = TIME_INTERVAL_IN_MILLIS;
 			Client client = service.getNext();
-			while(timeSlice<=FAIR_SHARE_TIME_IN_MILLIS && client.isConnected()){
+			while(timeSlice<=FAIR_SHARE_TIME_IN_MILLIS && client.isConnected() && keepRunning.get()){
 				logger.debug("{}, Counter Value:{}", client.getName(), client.getAndIncCounter());
 				timeSlice += TIME_INTERVAL_IN_MILLIS;
 				try {
@@ -46,6 +50,14 @@ public class FairScheduler implements Runnable{
 				
 			}
 		}
+	}
+	
+	public ClientService getClientService(){
+		return service;
+	}
+	
+	public void stop(){
+		keepRunning.compareAndSet(true, false);
 	}
 	
 

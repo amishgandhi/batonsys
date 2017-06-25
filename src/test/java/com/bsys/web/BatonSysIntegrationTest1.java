@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.bsys.web.model.Client;
@@ -19,11 +21,11 @@ import com.bsys.web.service.FairScheduler;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class BatonSysIntegrationClientDisconnect {
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+public class BatonSysIntegrationTest1 {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Autowired ClientService service;
 	@Autowired
     private ApplicationContext applicationContext;
 	
@@ -33,6 +35,7 @@ public class BatonSysIntegrationClientDisconnect {
 	    ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) applicationContext.getBean("taskExecutor");
 
 		FairScheduler fs = (FairScheduler) applicationContext.getBean("fairScheduler");
+		ClientService service = fs.getClientService();
 		taskExecutor.execute(fs);
 		Client clientB = service.getClient(2);
 		Client clientA = service.getClient(1);
@@ -55,8 +58,30 @@ public class BatonSysIntegrationClientDisconnect {
 		}
 		
 		assertEquals("Client A counter shouldn't change", clientACounter, clientA.getCounter());
-		
-		
+		fs.stop();
 	}
+	
+	@Test
+	public void testNewClient() {
+	    ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) applicationContext.getBean("taskExecutor");
+
+		FairScheduler fs = (FairScheduler) applicationContext.getBean("fairScheduler");
+		ClientService service = fs.getClientService();
+		taskExecutor.execute(fs);
+		service.addClient("Client D");
+		Client clientA = service.getClient(1);
+
+		while(clientA.getCounter()<=5)
+		try {
+			Thread.sleep(FairScheduler.TIME_INTERVAL_IN_MILLIS);
+		} catch (InterruptedException e) {
+			logger.warn("Thread slee was interrupted", e);
+		}
+		
+
+		assertTrue("Client D Counter should be greater than 4", service.getClient(4).getCounter()>=4);
+		fs.stop();
+	}
+	
 
 }
